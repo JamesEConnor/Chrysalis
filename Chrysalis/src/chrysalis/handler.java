@@ -20,6 +20,8 @@ public class handler extends Applet
         //Create a new Home Screen. When it's created, it will automatically register itself.
         new homeScreen(this);
         new TestScreen(this);
+        
+        new userCreate(this);
     }
     
     //Change the screen by adding the component (screen is a JPanel).
