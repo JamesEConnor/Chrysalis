@@ -1,15 +1,11 @@
 package chrysalis;
 
 //Imports
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
+import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
@@ -17,6 +13,7 @@ import javax.swing.*;
 
 public class userCreate extends screen
 {
+    
     //Stores the handler for changing screens.
     handler h;
     
@@ -25,34 +22,35 @@ public class userCreate extends screen
     
     //TEXTBOX
     JTextField uname;
-    JTextField pass;
+    JPasswordField pass;
     
     //LABELS
-    JLabel u;
-    JLabel p;
+    JLabel u, p;
     
     //RADIO BUTTON
-    JRadioButton admin;
-    JRadioButton standard;
+    JRadioButton admin, standard;
     ButtonGroup adminSelect;
     
+    //PANELS
+    JPanel userPanel, passPanel, buttonPanel, adminPanel;
     
-    String username;
-    String password;
+    String username, password, userNum;
     int uid;
-    String userNum; 
     boolean administrator;
+    JsonObject name, pswd, uNum;
+    JsonArray user;
     
-    MessageDigest digest;
-    PrintWriter output;
+    //FILES
+    File admins = new File("./rsc/admins.json");
+    File std = new File("./rsc/stdUsers.json");
+   
    
     
     
     
     
     
-    
- //Constructor for Home Screen. Passes handler to screen constructor and sets h variable to handler.
+ //Constructor for Screen. Passes handler to screen constructor and sets h variable to handler.
     //These are used for changing screens and registering this screen.
     public userCreate(handler _h) {
         super(_h, "NewUser");
@@ -70,6 +68,18 @@ public class userCreate extends screen
     @Override
     public void initialize()
     {
+         //instansiate the json objects that will hold the account
+         user = new JsonArray();
+         name = new JsonObject();
+         pswd = new JsonObject();
+         uNum = new JsonObject();
+       
+        
+        //set up the panels to get everything nice and organized
+        userPanel = new JPanel();
+        passPanel = new JPanel();
+        buttonPanel = new JPanel();
+        adminPanel = new JPanel();
         
         //Set up the labels with their text
         u = new JLabel("Enter username:");
@@ -78,7 +88,8 @@ public class userCreate extends screen
         
         //set up the text boxes
         uname = new JTextField(8);
-        pass = new JTextField(8);
+        pass = new JPasswordField(8);
+        pass.setEchoChar('•');
         
         //set up the selection for whether or not a user is an administrator
         adminSelect = new ButtonGroup();
@@ -86,19 +97,37 @@ public class userCreate extends screen
         standard = new JRadioButton("Standard User");
         adminSelect.add(admin);
         adminSelect.add(standard);
+       
         
         //set up the user creation button
         create = new JButton("create user");
         
+        //add everyhting to the appropriate panels, ane add panels to the window
+        
+        //USERNAME
+        userPanel.add(u);
+        userPanel.add(uname);
+        this.add(userPanel);
+        
+        //PASSWORD
+        passPanel.add(p);
+        passPanel.add(pass);
+        this.add(passPanel);
+        
+        
+        //USER TYPE
+        adminPanel.add(admin);
+        adminPanel.add(standard);
+        this.add(adminPanel);
+        
+        //CREATE USER
+        buttonPanel.add(create);
+        this.add(buttonPanel);
+        
+        
+        
         //add components to the window
-        this.add(u);
-        this.add(uname);
-        this.add(p);
-        this.add(pass);
-        this.add(standard);
-        this.add(admin);
         create.addActionListener(this);
-        this.add(create);
         standard.addActionListener(this);
         admin.addActionListener(this);
         
@@ -108,6 +137,9 @@ public class userCreate extends screen
     @Override
     public void actionPerformed(ActionEvent e)
     {
+        
+        
+       
         if(e.getActionCommand().equals("Administrator"))
             //The new user will be an admin
             administrator = true;
@@ -117,49 +149,59 @@ public class userCreate extends screen
             administrator = false;
         else
         {
-            try {
-                //create the new user
-                username = "\"username\":" +  uname.getText() + ",";
-                password = pass.getText();
-                
-                //generate the UID
-                uid = (int)(Math.random() * 10000);
-                
-                //create hash of the password (we don't want to store it in plain text, that'd be bad)
-                try {
-                    digest = MessageDigest.getInstance("SHA-256");
-                } catch (NoSuchAlgorithmException ex) {
-                    Logger.getLogger(userCreate.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                byte[] encodedhash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-                password = "\"password\":" + bytesToHex(encodedhash) + ",";
-                
-                userNum = "\"uid\":" + uid + ",";
-                if(administrator)
-                    output = new PrintWriter(new FileWriter("./rsc/admins.json", true));
-                else
-                    output = new PrintWriter(new FileWriter("./rsc/stdUsers.json", true));
-                output.println(username +"\n" + password + "\n" + userNum);
-                output.close();
-                
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(userCreate.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(userCreate.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
+         
+         //hash the password
+         password = pass.getText();
+         password = hasher.hash(password);
+         
+         username = uname.getText();
+         
+         genUID();
+         
+         //start adding the elements to a JsonObject that we'll add to what's in the file
+         name.addProperty("username", username);
+         pswd.addProperty("password", password);
+         uNum.addProperty("UID", uid);
+         user.add(name);
+         user.add(pswd);
+         user.add(uNum);
+         
+         try 
+         {
+             if(administrator == true)
+
+                 JSONParseWrite.JSONWrite(user, admins, "user");
+
+
+             else
+                 JSONParseWrite.JSONWrite(user, std, "user");
+         } 
+         catch (IOException ex) 
+         {
+             Logger.getLogger(userCreate.class.getName()).log(Level.SEVERE, null, ex);
+             //let the user know there was an error
+               JOptionPane.showMessageDialog(null,"User creation failed","ERROR",JOptionPane.ERROR_MESSAGE);
+         }
+         
+         //let the user know the operation completed sucessfully, and clear the objects for the next user
+         JOptionPane.showMessageDialog(null,"User creation complete!","Success",JOptionPane.INFORMATION_MESSAGE);
+         user.remove(name);
+         user.remove(pswd);
+         user.remove(uNum);
+         name.remove("username");
+         pswd.remove("password");
+         uNum.remove("UID");
+         
+         //clear the textboxes
+         pass.setText("");
+         uname.setText("");
+         
+         
+        }   
         }
-    }
     
-    private static String bytesToHex(byte[] hash) {
-    StringBuilder hexString = new StringBuilder();
-    for (int i = 0; i < hash.length; i++) {
-    String hex = Integer.toHexString(0xff & hash[i]);
-    if(hex.length() == 1) hexString.append('0');
-        hexString.append(hex);
+    public void genUID()
+    {
+        uid = (int) (Math.random() * 10000);
     }
-    return hexString.toString();
-}
-    
-   
-}
+    }   

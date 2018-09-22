@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+
 public class handler extends Applet
 {
     //Dictionary of all screens, linking them with their names.
@@ -17,10 +18,9 @@ public class handler extends Applet
     @Override
     public void init()
     {
-        //Create a new Home Screen. When it's created, it will automatically register itself.
+        //Create new Screens. When it's created, it will automatically register itself.
         new homeScreen(this);
         new TestScreen(this);
-        
         new userCreate(this);
     }
     
