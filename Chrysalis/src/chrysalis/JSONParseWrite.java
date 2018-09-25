@@ -20,17 +20,15 @@ public class JSONParseWrite {
         //To write the JSON object to the file in such a way that we can parse it, we need to read it first
 
         JsonElement orig = JSONParse(dest);
-        System.out.println("orig:" + orig);
         //now that we have the original object, we need to add the new object to it, but keep the old one there
-        JsonElement working = orig;
-        System.out.println("working:" + working);
         JsonArray combine = new JsonArray();
-        combine.add(working);
+        combine.add(orig);
         System.out.println("combine: " + combine);
         combine.add(in);
-        System.out.println("combine: " + combine);
+        JsonObject output = new JsonObject();
+        output.add(name, combine);
         writer = new FileWriter(dest);
-        writer.write(combine.toString());
+        writer.write(output.toString());
         writer.close();
         
     }
