@@ -170,11 +170,11 @@ public class userCreate extends screen
          {
              if(administrator == true)
 
-                 JSONParseWrite.JSONWrite(user, admins, "user");
+                 JSONParseWrite.JSONWrite(user, admins, username);
 
 
              else
-                 JSONParseWrite.JSONWrite(user, std, "user");
+                 JSONParseWrite.JSONWrite(user, std, username);
          } 
          catch (IOException ex) 
          {
