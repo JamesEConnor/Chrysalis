@@ -14,23 +14,18 @@ public class JSONParseWrite {
     static FileReader reader;
     static FileWriter writer;
     public static void JSONWrite(JsonArray in,File dest, String name) throws FileNotFoundException, IOException
-    {
-        System.out.println(dest);
-        
+    {   
         //To write the JSON object to the file in such a way that we can parse it, we need to read it first
-
         JsonElement orig = JSONParse(dest);
         //now that we have the original object, we need to add the new object to it, but keep the old one there
-        JsonArray combine = new JsonArray();
-        combine.add(orig);
-        System.out.println("combine: " + combine);
-        combine.add(in);
-        JsonObject output = new JsonObject();
-        output.add(name, combine);
+        JsonObject combine = new JsonObject();
+        combine.add(name,in);
+        JsonArray output = new JsonArray();
+        output.add(orig);
+        output.add(combine);
         writer = new FileWriter(dest);
         writer.write(output.toString());
         writer.close();
-        
     }
     
     public static JsonElement JSONParse(File read) throws FileNotFoundException, IOException
