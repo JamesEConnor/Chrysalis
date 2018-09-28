@@ -56,6 +56,6 @@ public class homeScreen extends screen
         else if(e.getSource() == approveCommit)
             h.changeScreen(this);
         else if(e.getSource() == createUser)
-            h.changeScreen(this);
+            h.changeScreen("NewUser");
     }
 }
